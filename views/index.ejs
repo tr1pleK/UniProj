@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бронирование переговорных</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="/">Бронирование</a>
+            <a href="/schedule">Расписание</a>
+        </nav>
+
+        <div class="card">
+            <h1>Бронирование переговорной</h1>
+
+            <% if (error) { %>
+                <p class="error"><%= error %></p>
+            <% } %>
+
+            <form method="POST" action="/book">
+                <label>Комната</label>
+                <select name="room" required>
+                    <% rooms.forEach(room => { %>
+                        <option value="<%= room %>"><%= room %></option>
+                    <% }); %>
+                </select>
+
+                <label>Дата</label>
+                <input type="date" name="date" required>
+
+                <label>Время начала</label>
+                <input type="time" name="startTime" required>
+
+                <label>Длительность (часы)</label>
+                <input type="number" name="duration" min="0.5" step="0.5" required>
+
+                <button type="submit">Забронировать</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

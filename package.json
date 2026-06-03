@@ -1,0 +1,13 @@
+{
+  "name": "meeting-rooms-booking",
+  "version": "1.0.0",
+  "description": "Бронирование переговорных комнат",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "ejs": "^5.0.2",
+    "express": "^5.2.1"
+  }
+}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="/">Бронирование</a>
+            <a href="/schedule">Расписание</a>
+        </nav>
+
+        <div class="card">
+            <h1>Расписание занятости</h1>
+
+            <% if (bookings.length === 0) { %>
+                <p>Нет предстоящих бронирований.</p>
+            <% } else { %>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Комната</th>
+                            <th>Дата</th>
+                            <th>Начало</th>
+                            <th>Длительность</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% bookings.forEach(booking => { %>
+                            <tr>
+                                <td><%= booking.room %></td>
+                                <td><%= booking.date %></td>
+                                <td><%= booking.startTime %></td>
+                                <td><%= booking.duration %> ч.</td>
+                                <td>
+                                    <form method="POST" action="/cancel/<%= booking.id %>">
+                                        <button type="submit" class="btn-cancel">Отменить</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>
