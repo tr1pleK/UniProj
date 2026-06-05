@@ -9,7 +9,10 @@
     <nav>
         <a href="/">Бронирование</a>
         <a href="/schedule">Расписание</a>
-        <span><%= user.username %></span>
+        <% if (user.is_admin) { %>
+            <a href="/stats">Статистика</a>
+        <% } %>
+        <span><%= user.username %><% if (user.is_admin) { %> (админ)<% } %></span>
         <a href="/logout">Выйти</a>
     </nav>
 

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Статистика</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav>
+        <a href="/">Бронирование</a>
+        <a href="/schedule">Расписание</a>
+        <a href="/stats">Статистика</a>
+        <span><%= user.username %> (админ)</span>
+        <a href="/logout">Выйти</a>
+    </nav>
+
+    <h1>Статистика записей</h1>
+
+    <form method="GET" action="/stats">
+        <label>С</label>
+        <input type="date" name="from" value="<%= from %>" required>
+
+        <label>По</label>
+        <input type="date" name="to" value="<%= to %>" required>
+
+        <br>
+        <button type="submit">Показать</button>
+    </form>
+
+    <% if (rows.length > 0) { %>
+        <table>
+            <tr>
+                <th>Дата</th>
+                <th>Количество записей</th>
+            </tr>
+            <% rows.forEach(row => { %>
+                <tr>
+                    <td><%= row.date %></td>
+                    <td><%= row.count %></td>
+                </tr>
+            <% }); %>
+        </table>
+    <% } else if (from && to) { %>
+        <p>За выбранный период записей нет.</p>
+    <% } %>
+</body>
+</html>

@@ -9,41 +9,51 @@
     <nav>
         <a href="/">Бронирование</a>
         <a href="/schedule">Расписание</a>
-        <span><%= user.username %></span>
+        <% if (user.is_admin) { %>
+            <a href="/stats">Статистика</a>
+        <% } %>
+        <span><%= user.username %><% if (user.is_admin) { %> (админ)<% } %></span>
         <a href="/logout">Выйти</a>
     </nav>
 
-    <h1>Расписание занятости</h1>
-
-    <% if (bookings.length === 0) { %>
-        <p>Нет предстоящих бронирований.</p>
+    <% if (user.is_admin) { %>
+        <h1>Все записи</h1>
     <% } else { %>
-        <table>
-            <tr>
-                <th>Комната</th>
-                <th>Дата</th>
-                <th>Начало</th>
-                <th>Длительность</th>
-                <th>Автор</th>
-                <th></th>
-            </tr>
-            <% bookings.forEach(booking => { %>
+        <h1>Мои записи</h1>
+    <% } %>
+
+    <% if (days.length === 0) { %>
+        <p>Нет предстоящих записей.</p>
+    <% } else { %>
+        <% days.forEach(day => { %>
+            <h2><%= day.date %></h2>
+            <table>
                 <tr>
-                    <td><%= booking.room %></td>
-                    <td><%= booking.date %></td>
-                    <td><%= booking.startTime %></td>
-                    <td><%= booking.duration %> ч.</td>
-                    <td><%= booking.username %></td>
-                    <td>
-                        <% if (booking.userId === user.id) { %>
-                            <form method="POST" action="/cancel/<%= booking.id %>">
-                                <button type="submit">Отменить</button>
-                            </form>
-                        <% } %>
-                    </td>
+                    <th>Комната</th>
+                    <th>Начало</th>
+                    <th>Длительность</th>
+                    <% if (user.is_admin) { %>
+                        <th>Автор</th>
+                    <% } %>
+                    <th></th>
                 </tr>
-            <% }); %>
-        </table>
+                <% day.items.forEach(booking => { %>
+                    <tr>
+                        <td><%= booking.room %></td>
+                        <td><%= booking.start_time %></td>
+                        <td><%= booking.duration %> ч.</td>
+                        <% if (user.is_admin) { %>
+                            <td><%= booking.user_name %></td>
+                        <% } %>
+                        <td>
+                            <form method="POST" action="/cancel/<%= booking.id %>">
+                                <button type="submit">Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                <% }); %>
+            </table>
+        <% }); %>
     <% } %>
 </body>
 </html>
