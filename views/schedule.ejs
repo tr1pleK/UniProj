@@ -9,6 +9,8 @@
     <nav>
         <a href="/">Бронирование</a>
         <a href="/schedule">Расписание</a>
+        <span><%= user.username %></span>
+        <a href="/logout">Выйти</a>
     </nav>
 
     <h1>Расписание занятости</h1>
@@ -22,6 +24,7 @@
                 <th>Дата</th>
                 <th>Начало</th>
                 <th>Длительность</th>
+                <th>Автор</th>
                 <th></th>
             </tr>
             <% bookings.forEach(booking => { %>
@@ -30,10 +33,13 @@
                     <td><%= booking.date %></td>
                     <td><%= booking.startTime %></td>
                     <td><%= booking.duration %> ч.</td>
+                    <td><%= booking.username %></td>
                     <td>
-                        <form method="POST" action="/cancel/<%= booking.id %>">
-                            <button type="submit">Отменить</button>
-                        </form>
+                        <% if (booking.userId === user.id) { %>
+                            <form method="POST" action="/cancel/<%= booking.id %>">
+                                <button type="submit">Отменить</button>
+                            </form>
+                        <% } %>
                     </td>
                 </tr>
             <% }); %>
