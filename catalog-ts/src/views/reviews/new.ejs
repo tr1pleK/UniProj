@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+
+<div class="topbar"><a href="/products/<%= product.id %>">← К товару</a></div>
+
+<h1>Новый отзыв</h1>
+<p class="badge"><%= product.name %></p>
+
+<form method="POST" action="/products/<%= product.id %>/reviews">
+    <label for="reviewer_name">Ваше имя</label>
+    <input type="text" id="reviewer_name" name="reviewer_name" required>
+
+    <label for="rating">Рейтинг</label>
+    <select id="rating" name="rating" required>
+        <% for (let i = 5; i >= 1; i--) { %>
+            <option value="<%= i %>"><%= i %> — <%= '★'.repeat(i) %></option>
+        <% } %>
+    </select>
+
+    <label for="comment">Комментарий</label>
+    <textarea id="comment" name="comment" rows="4"></textarea>
+
+    <div style="margin-top: 16px;">
+        <button type="submit" class="btn">Отправить отзыв</button>
+        <a class="btn btn-secondary" href="/products/<%= product.id %>">Отмена</a>
+    </div>
+</form>
+
+<%- include('../partials/footer') %>

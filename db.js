@@ -1,29 +1,38 @@
-const fs = require('fs');
-const path = require('path');
-const Database = require('better-sqlite3');
+const { Pool } = require('pg');
 
-const dataDir = path.join(__dirname, 'data');
-fs.mkdirSync(dataDir, { recursive: true });
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-const db = new Database(path.join(dataDir, 'app.db'));
+// Обёртка с тем же API, что и раньше (prepare().all/get/run),
+// только асинхронная и с плейсхолдерами PostgreSQL ($1, $2 вместо ?).
+function prepare(sql) {
+    let i = 0;
+    const text = sql.replace(/\?/g, () => `$${++i}`);
+    return {
+        all: async (...params) => (await pool.query(text, params)).rows,
+        get: async (...params) => (await pool.query(text, params)).rows[0],
+        run: async (...params) => ({ changes: (await pool.query(text, params)).rowCount }),
+    };
+}
 
-db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        is_admin INTEGER NOT NULL DEFAULT 0
-    );
+async function init() {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            is_admin INTEGER NOT NULL DEFAULT 0
+        );
 
-    CREATE TABLE IF NOT EXISTS bookings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        room TEXT NOT NULL,
-        date TEXT NOT NULL,
-        start_time TEXT NOT NULL,
-        duration REAL NOT NULL,
-        user_id INTEGER NOT NULL,
-        user_name TEXT NOT NULL
-    );
-`);
+        CREATE TABLE IF NOT EXISTS bookings (
+            id SERIAL PRIMARY KEY,
+            room TEXT NOT NULL,
+            date TEXT NOT NULL,
+            start_time TEXT NOT NULL,
+            duration REAL NOT NULL,
+            user_id INTEGER NOT NULL,
+            user_name TEXT NOT NULL
+        );
+    `);
+}
 
-module.exports = db;
+module.exports = { prepare, init, pool };

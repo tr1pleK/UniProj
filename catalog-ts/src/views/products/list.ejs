@@ -1,0 +1,24 @@
+<%- include('../partials/header') %>
+
+<h1>Каталог товаров</h1>
+
+<div class="grid">
+    <% products.forEach(function (p) { %>
+        <div class="card">
+            <h3><a href="/products/<%= p.id %>"><%= p.name %></a></h3>
+            <div class="price"><%= p.price.toFixed(2) %> ₽</div>
+            <p class="muted">
+                <% if (p.review_count > 0 && p.avg_rating !== null) { %>
+                    <span class="stars">★</span> <%= p.avg_rating.toFixed(1) %>
+                    · <%= p.review_count %> отзыв(ов)
+                <% } else { %>
+                    Пока нет отзывов
+                <% } %>
+            </p>
+            <p class="muted">В наличии: <%= p.stock_quantity %> шт.</p>
+            <a class="btn" href="/products/<%= p.id %>">Подробнее</a>
+        </div>
+    <% }); %>
+</div>
+
+<%- include('../partials/footer') %>

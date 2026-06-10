@@ -75,7 +75,7 @@ app.get('/', requireAuth, (req, res) => {
     res.render('index', { rooms: ROOMS, error: null, user: req.session.user });
 });
 
-app.post('/book', requireAuth, (req, res) => {
+app.post('/book', requireAuth, async (req, res) => {
     const { room, date, startTime, duration } = req.body;
 
     if (!room || !date || !startTime || !duration) {
@@ -83,33 +83,33 @@ app.post('/book', requireAuth, (req, res) => {
     }
 
     const hours = parseFloat(duration);
-    const bookings = db.prepare('SELECT * FROM bookings WHERE room = ?').all(room);
+    const bookings = await db.prepare('SELECT * FROM bookings WHERE room = ?').all(room);
 
     if (!isTimeAvailable(bookings, room, date, startTime, hours)) {
         return res.render('index', { rooms: ROOMS, error: 'Комната уже занята в это время', user: req.session.user });
     }
 
-    db.prepare('INSERT INTO bookings (room, date, start_time, duration, user_id, user_name) VALUES (?, ?, ?, ?, ?, ?)')
+    await db.prepare('INSERT INTO bookings (room, date, start_time, duration, user_id, user_name) VALUES (?, ?, ?, ?, ?, ?)')
         .run(room, date, startTime, hours, req.session.user.id, req.session.user.username);
 
     res.redirect('/schedule');
 });
 
-app.get('/schedule', requireAuth, (req, res) => {
+app.get('/schedule', requireAuth, async (req, res) => {
     let bookings;
     if (req.session.user.is_admin) {
-        bookings = db.prepare('SELECT * FROM bookings').all();
+        bookings = await db.prepare('SELECT * FROM bookings').all();
     } else {
-        bookings = db.prepare('SELECT * FROM bookings WHERE user_id = ?').all(req.session.user.id);
+        bookings = await db.prepare('SELECT * FROM bookings WHERE user_id = ?').all(req.session.user.id);
     }
 
     const days = groupByDay(getUpcoming(bookings));
     res.render('schedule', { days, user: req.session.user });
 });
 
-app.post('/cancel/:id', requireAuth, (req, res) => {
+app.post('/cancel/:id', requireAuth, async (req, res) => {
     const id = Number(req.params.id);
-    const booking = db.prepare('SELECT * FROM bookings WHERE id = ?').get(id);
+    const booking = await db.prepare('SELECT * FROM bookings WHERE id = ?').get(id);
 
     if (!booking) {
         return res.status(404).send('Запись не найдена');
@@ -118,16 +118,16 @@ app.post('/cancel/:id', requireAuth, (req, res) => {
         return res.status(403).send('Нельзя удалить чужую запись');
     }
 
-    db.prepare('DELETE FROM bookings WHERE id = ?').run(id);
+    await db.prepare('DELETE FROM bookings WHERE id = ?').run(id);
     res.redirect('/schedule');
 });
 
-app.get('/stats', requireAdmin, (req, res) => {
+app.get('/stats', requireAdmin, async (req, res) => {
     const { from, to } = req.query;
     let rows = [];
 
     if (from && to) {
-        rows = db.prepare('SELECT date, COUNT(*) AS count FROM bookings WHERE date >= ? AND date <= ? GROUP BY date ORDER BY date')
+        rows = await db.prepare('SELECT date, COUNT(*) AS count FROM bookings WHERE date >= ? AND date <= ? GROUP BY date ORDER BY date')
             .all(from, to);
     }
 
@@ -138,16 +138,16 @@ app.get('/register', (req, res) => {
     res.render('register', { error: null });
 });
 
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
     const { username, password } = req.body;
-    const existing = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
+    const existing = await db.prepare('SELECT id FROM users WHERE username = ?').get(username);
 
     if (existing) {
         return res.render('register', { error: 'Пользователь уже существует' });
     }
 
     const hashedPassword = bcryptjs.hashSync(password, 10);
-    db.prepare('INSERT INTO users (username, password, is_admin) VALUES (?, ?, 0)').run(username, hashedPassword);
+    await db.prepare('INSERT INTO users (username, password, is_admin) VALUES (?, ?, 0)').run(username, hashedPassword);
 
     res.redirect('/login');
 });
@@ -156,9 +156,9 @@ app.get('/login', (req, res) => {
     res.render('login', { error: null });
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
     const { username, password } = req.body;
-    const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+    const user = await db.prepare('SELECT * FROM users WHERE username = ?').get(username);
 
     if (!user) {
         return res.render('login', { error: 'Пользователь не найден' });
@@ -176,6 +176,13 @@ app.get('/logout', (req, res) => {
     res.redirect('/login');
 });
 
-app.listen(PORT, () => {
-    console.log(`Сервер запущен: http://localhost:${PORT}`);
-});
+db.init()
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`Сервер запущен: http://localhost:${PORT}`);
+        });
+    })
+    .catch((err) => {
+        console.error('Не удалось инициализировать БД:', err);
+        process.exit(1);
+    });

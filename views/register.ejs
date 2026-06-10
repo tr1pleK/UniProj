@@ -8,8 +8,31 @@
 <body>
     <h1>Регистрация</h1>
 
-    <% if (error) { %>
-        <p class="error"><%= error %></p>
+    <% if (bookings.length === 0) { %>
+        <p>Нет предстоящих бронирований.</p>
+    <% } else { %>
+        <table>
+            <tr>
+                <th>Комната</th>
+                <th>Дата</th>
+                <th>Начало</th>
+                <th>Длительность</th>
+                <th></th>
+            </tr>
+            <% bookings.forEach(booking => { %>
+                <tr>
+                    <td><%= booking.room %></td>
+                    <td><%= booking.date %></td>
+                    <td><%= booking.startTime %></td>
+                    <td><%= booking.duration %> ч.</td>
+                    <td>
+                        <form method="POST" action="/cancel/<%= booking.id %>">
+                            <button type="submit">Отменить</button>
+                        </form>
+                    </td>
+                </tr>
+            <% }); %>
+        </table>
     <% } %>
 
     <form method="POST" action="/register">
